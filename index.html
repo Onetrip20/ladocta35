@@ -849,7 +849,7 @@ function renderDash(){
   const deu=deudaTotal();
   const alDia=JUG.filter(j=>estadoGeneralJ(j.nombre)==='ok').length;
   // Caja efectivo = saldo inicial + cobros efectivo - gastos efectivo
-  const cobrosEfect=cobros.filter(c=>c.metodo==='efectivo').reduce((s,c)=>s+c.monto,0);
+  const cobrosEfect=cobros.filter(c=>!c.metodo||c.metodo==='efectivo').reduce((s,c)=>s+c.monto,0);
   const cobrosTransf=cobros.filter(c=>c.metodo==='transferencia').reduce((s,c)=>s+c.monto,0);
   const gastosEfect=gastos.filter(g=>g.metodo!=='transferencia').reduce((s,g)=>s+g.monto,0);
   const gastosTransf=gastos.filter(g=>g.metodo==='transferencia').reduce((s,g)=>s+g.monto,0);
