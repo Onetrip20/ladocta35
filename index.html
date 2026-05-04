@@ -1,5 +1,4 @@
 <!DOCTYPE html>
-<!-- v3 -->
 
 <html lang="es">
 <head>
@@ -854,7 +853,7 @@ function renderDash(){
   const cobrosTransf=0;
   const gastosEfect=gastos.reduce((s,g)=>s+g.monto,0);
   const gastosTransf=0;
-  const cajaEfect=saldoInicial+cobrosEfect-gastosEfect+1;
+  const cajaEfect=saldoInicial+cobrosEfect-gastosEfect;
   const cajaBanco=saldoBanco+cobrosTransf-gastosTransf;
 
   const efEl=document.getElementById('d-efect');
