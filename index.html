@@ -730,6 +730,90 @@ function renderVistaJugador(nombre){
   body.appendChild(btnNuevoEve);
 }
 
+// ── EDITAR GASTO ───────────────────────────────────────────
+function editarGasto(g){
+  const ov=document.createElement('div');
+  ov.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,.85);z-index:300;display:flex;align-items:flex-end;backdrop-filter:blur(4px)';
+  ov.innerHTML='<div style="background:var(--d1);border-radius:26px 26px 0 0;padding:22px 18px 40px;width:100%">'+
+    '<div style="width:34px;height:4px;background:var(--br);border-radius:99px;margin:0 auto 18px"></div>'+
+    '<div style="font-family:Syne,sans-serif;font-size:18px;font-weight:800;margin-bottom:16px">✏️ Editar gasto</div>'+
+    '<label class="fl">Descripción</label>'+
+    '<input id="eg-desc" type="text" class="fi" style="margin-bottom:14px">'+
+    '<label class="fl">Monto ($)</label>'+
+    '<input id="eg-monto" type="number" class="fi" style="margin-bottom:14px">'+
+    '<label class="fl">Método</label>'+
+    '<div class="tbtns" style="margin-bottom:14px">'+
+      '<button class="tbtn '+(g.metodo!=='transferencia'?'on':'')+'" id="eg-efect">💵 Efectivo</button>'+
+      '<button class="tbtn '+(g.metodo==='transferencia'?'on':'')+'" id="eg-transf">🏦 Transferencia</button>'+
+    '</div>'+
+    '<button class="btn p" id="eg-ok">Guardar</button>'+
+    '<button class="btn s" id="eg-cancel">Cancelar</button>'+
+  '</div>';
+  document.body.appendChild(ov);
+  document.getElementById('eg-desc').value=g.desc;
+  document.getElementById('eg-monto').value=g.monto;
+  let metodoG=g.metodo||'efectivo';
+  document.getElementById('eg-efect').addEventListener('click',function(){
+    metodoG='efectivo'; this.classList.add('on'); document.getElementById('eg-transf').classList.remove('on');
+  });
+  document.getElementById('eg-transf').addEventListener('click',function(){
+    metodoG='transferencia'; this.classList.add('on'); document.getElementById('eg-efect').classList.remove('on');
+  });
+  document.getElementById('eg-cancel').addEventListener('click',()=>ov.remove());
+  document.getElementById('eg-ok').addEventListener('click',()=>{
+    const desc=document.getElementById('eg-desc').value.trim();
+    const monto=parseInt(document.getElementById('eg-monto').value)||0;
+    if(!desc){toast('Ingresá una descripción');return;}
+    if(!monto){toast('Ingresá un monto');return;}
+    g.desc=desc; g.monto=monto; g.metodo=metodoG;
+    save(); ov.remove(); renderGas(); renderDash();
+    toast('✅ Gasto actualizado');
+  });
+}
+
+// ── EDITAR COBRO ────────────────────────────────────────────
+function editarCobro(c, onDone){
+  const ov=document.createElement('div');
+  ov.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,.85);z-index:300;display:flex;align-items:flex-end;backdrop-filter:blur(4px)';
+  ov.innerHTML='<div style="background:var(--d1);border-radius:26px 26px 0 0;padding:22px 18px 40px;width:100%">'+
+    '<div style="width:34px;height:4px;background:var(--br);border-radius:99px;margin:0 auto 18px"></div>'+
+    '<div style="font-family:Syne,sans-serif;font-size:18px;font-weight:800;margin-bottom:16px">✏️ Editar cobro</div>'+
+    '<label class="fl">Mes</label>'+
+    '<select id="ec-mes" class="fi" style="-webkit-appearance:none;margin-bottom:14px"></select>'+
+    '<label class="fl">Monto ($)</label>'+
+    '<input id="ec-monto" type="number" class="fi" style="margin-bottom:14px">'+
+    '<label class="fl">Método</label>'+
+    '<div class="tbtns" style="margin-bottom:14px">'+
+      '<button class="tbtn '+(c.metodo==='transferencia'?'on':'')+'" id="ec-transf">🏦 Transferencia</button>'+
+      '<button class="tbtn '+(c.metodo!=='transferencia'?'on':'')+'" id="ec-efect">💵 Efectivo</button>'+
+    '</div>'+
+    '<button class="btn p" id="ec-ok">Guardar</button>'+
+    '<button class="btn s" id="ec-cancel">Cancelar</button>'+
+  '</div>';
+  document.body.appendChild(ov);
+  const selMes=document.getElementById('ec-mes');
+  selMes.innerHTML=["Enero","Febrero","Marzo","Abril","Mayo","Junio","Julio","Agosto","Septiembre","Octubre","Noviembre","Diciembre"]
+    .map(m=>'<option'+(m===c.mes?' selected':'')+'>'+m+'</option>').join('');
+  document.getElementById('ec-monto').value=c.monto;
+  let metodoC=c.metodo||'efectivo';
+  document.getElementById('ec-transf').addEventListener('click',function(){
+    metodoC='transferencia'; this.classList.add('on'); document.getElementById('ec-efect').classList.remove('on');
+  });
+  document.getElementById('ec-efect').addEventListener('click',function(){
+    metodoC='efectivo'; this.classList.add('on'); document.getElementById('ec-transf').classList.remove('on');
+  });
+  document.getElementById('ec-cancel').addEventListener('click',()=>ov.remove());
+  document.getElementById('ec-ok').addEventListener('click',()=>{
+    const monto=parseInt(document.getElementById('ec-monto').value)||0;
+    if(!monto){toast('Ingresá un monto');return;}
+    c.mes=selMes.value; c.monto=monto; c.metodo=metodoC;
+    save(); ov.remove();
+    if(onDone) onDone();
+    renderDash(); renderJug();
+    toast('✅ Cobro actualizado');
+  });
+}
+
 // ── GESTIONAR JUGADORES ────────────────────────────────────
 function gestionarJugadores(){
   const ov=document.createElement('div');
@@ -1018,9 +1102,17 @@ function renderGas(){
       '<div style="flex:1"><div style="font-size:13px;font-weight:500">'+g.desc+'</div><div style="font-size:10px;color:var(--t2);margin-top:1px">'+g.categoria+' · '+g.fecha+'</div></div>'+
       '<div style="display:flex;flex-direction:column;align-items:flex-end;gap:3px">'+
         '<span style="font-family:Syne,sans-serif;font-size:14px;font-weight:700;color:var(--r)">-'+peso(g.monto)+'</span>'+
-        '<button class="chip" style="background:rgba(255,71,87,.1);color:var(--r);cursor:pointer;border:none" data-id="'+g.id+'">✕</button>'+
+        '<button class="chip edit-gasto-btn" style="background:rgba(47,128,237,.1);color:#5ba4ff;cursor:pointer;border:none;margin-bottom:2px" data-id="'+g.id+'">✏️</button>'+
+        '<button class="chip del-gasto-btn" style="background:rgba(255,71,87,.1);color:var(--r);cursor:pointer;border:none" data-id="'+g.id+'">✕</button>'+
       '</div>';
-    row.querySelector('button').addEventListener('click',function(){gastos=gastos.filter(x=>x.id!==this.dataset.id);save();renderGas();renderDash();toast('Gasto eliminado');});
+    row.querySelector('.del-gasto-btn').addEventListener('click',function(){
+      gastos=gastos.filter(x=>x.id!==this.dataset.id);save();renderGas();renderDash();toast('Gasto eliminado');
+    });
+    row.querySelector('.edit-gasto-btn').addEventListener('click',function(){
+      const id=this.dataset.id;
+      const g=gastos.find(x=>x.id===id);
+      editarGasto(g);
+    });
     card.appendChild(row);
   });
   const trow=document.createElement('div'); trow.className='trow';
@@ -1620,11 +1712,19 @@ function editarSaldoJugador(nombre){
       row.style.cssText='display:flex;align-items:center;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--br)';
       row.innerHTML='<div><div style="font-size:13px;font-weight:500">'+c.mes+' · '+peso(c.monto)+'</div>'+
         '<div style="font-size:10px;color:var(--t2)">'+c.fecha+' · '+c.metodo+'</div></div>'+
-        '<button style="background:rgba(255,71,87,.1);color:var(--r);border:none;border-radius:8px;padding:6px 12px;font-size:11px;font-weight:700;cursor:pointer" data-id="'+c.id+'">✕ Eliminar</button>';
-      row.querySelector('button').addEventListener('click',function(){
+        '<div style="display:flex;gap:6px">'+
+          '<button class="edit-cobro-btn" style="background:rgba(47,128,237,.1);color:#5ba4ff;border:none;border-radius:8px;padding:6px 12px;font-size:11px;font-weight:700;cursor:pointer" data-id="'+c.id+'">✏️</button>'+
+          '<button class="del-cobro-btn" style="background:rgba(255,71,87,.1);color:var(--r);border:none;border-radius:8px;padding:6px 12px;font-size:11px;font-weight:700;cursor:pointer" data-id="'+c.id+'">✕</button>'+
+        '</div>';
+      row.querySelector('.del-cobro-btn').addEventListener('click',function(){
         cobros=cobros.filter(x=>x.id!==this.dataset.id);
         save(); renderCobrosList();
         toast('Cobro eliminado');
+      });
+      row.querySelector('.edit-cobro-btn').addEventListener('click',function(){
+        const id=this.dataset.id;
+        const c2=cobros.find(x=>x.id===id);
+        editarCobro(c2, renderCobrosList);
       });
       cont.appendChild(row);
     });
