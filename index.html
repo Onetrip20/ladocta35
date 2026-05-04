@@ -848,8 +848,21 @@ function renderDash(){
   const cob=cobradoTotal(), gas=gastadoTotal(), neto=cob-gas;
   const deu=deudaTotal();
   const alDia=JUG.filter(j=>estadoGeneralJ(j.nombre)==='ok').length;
-  document.getElementById('d-efect').textContent=peso(saldoInicial);
-  document.getElementById('d-banco').textContent=peso(saldoBanco);
+  // Caja efectivo = saldo inicial + cobros efectivo - gastos efectivo
+  const cobrosEfect=cobros.reduce((s,c)=>s+c.monto,0);
+  const cobrosTransf=0;
+  const gastosEfect=gastos.reduce((s,g)=>s+g.monto,0);
+  const gastosTransf=0;
+  const cajaEfect=saldoInicial+cobrosEfect-gastosEfect;
+  const cajaBanco=saldoBanco+cobrosTransf-gastosTransf;
+
+  const efEl=document.getElementById('d-efect');
+  efEl.textContent=(cajaEfect<0?'- ':'')+peso(cajaEfect);
+  efEl.style.color=cajaEfect<0?'var(--r)':'#fff';
+
+  const bnEl=document.getElementById('d-banco');
+  bnEl.textContent=(cajaBanco<0?'- ':'')+peso(cajaBanco);
+  bnEl.style.color=cajaBanco<0?'var(--r)':'#fff';
   const movEl=document.getElementById('d-mov');
   movEl.textContent=(neto>0?'+':neto<0?'-':'')+peso(neto);
   movEl.style.color=neto<0?'var(--r)':neto>0?'var(--g)':'var(--t1)';
