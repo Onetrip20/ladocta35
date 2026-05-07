@@ -214,6 +214,9 @@ html,body{height:100%;background:var(--d0);color:var(--t1);font-family:'DM Sans'
     <button id="btn-gestionar-jug" style="flex:1;padding:14px;border-radius:14px;border:none;background:rgba(47,128,237,.12);border:1px solid rgba(47,128,237,.25);color:#5ba4ff;font-family:'Syne',sans-serif;font-size:14px;font-weight:700;cursor:pointer">
       👥 Jugadores
     </button>
+    <button id="btn-reset-mov" style="padding:14px;border-radius:14px;border:none;background:rgba(255,71,87,.12);border:1px solid rgba(255,71,87,.25);color:var(--r);font-family:'Syne',sans-serif;font-size:14px;font-weight:700;cursor:pointer">
+      🗑
+    </button>
   </div>
   <div class="sec">Deudores destacados</div>
   <div id="d-deud" style="margin:0 16px"></div>
@@ -1509,8 +1512,8 @@ function editarSaldo(){
   document.body.appendChild(ov);
   const inp=document.getElementById('ov-input'); inp.value=saldoInicial;
   setTimeout(()=>{inp.focus();inp.select();},80);
-  document.getElementById('ov-ok').addEventListener('click',()=>{const v=parseInt(inp.value)||0;saldoInicial=v;ov.remove();toast('✅ Saldo efectivo actualizado');fbSave().then(()=>renderDash());});
- document.getElementById('ov-cancel').addEventListener('click',()=>ov.remove());
+  document.getElementById('ov-ok').addEventListener('click',()=>{saldoInicial=parseInt(inp.value)||0;ov.remove();fbSave().then(()=>{renderDash();toast('✅ Saldo efectivo actualizado');});});
+  document.getElementById('ov-cancel').addEventListener('click',()=>ov.remove());
 }
 function editarBanco(){
   const ov=document.createElement('div');
@@ -1523,7 +1526,7 @@ function editarBanco(){
   document.body.appendChild(ov);
   const inp=document.getElementById('ov-banco'); inp.value=saldoBanco;
   setTimeout(()=>{inp.focus();inp.select();},80);
-  document.getElementById('ov-ok').addEventListener('click',()=>{saldoBanco=parseInt(inp.value)||0;save();ov.remove();renderDash();toast('✅ Saldo banco actualizado');});
+  document.getElementById('ov-ok').addEventListener('click',()=>{saldoBanco=parseInt(inp.value)||0;ov.remove();fbSave().then(()=>{renderDash();toast('✅ Saldo banco actualizado');});});
   document.getElementById('ov-cancel').addEventListener('click',()=>ov.remove());
 }
 function cambiarPassword(){
@@ -1835,6 +1838,7 @@ document.getElementById('modal').addEventListener('click',function(e){if(e.targe
 document.getElementById('btn-edit-saldo').addEventListener('click',editarSaldo);
 document.getElementById('btn-cargar-cuota').addEventListener('click',cargarCuotaMes);
 document.getElementById('btn-gestionar-jug').addEventListener('click',gestionarJugadores);
+document.getElementById('btn-reset-mov').addEventListener('click',resetMovimientos);
 document.getElementById('btn-edit-banco').addEventListener('click',editarBanco);
 document.getElementById('nav-dash').addEventListener('click',()=>goTo('dash'));
 document.getElementById('nav-jug').addEventListener('click',()=>goTo('jug'));
