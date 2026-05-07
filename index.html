@@ -356,7 +356,7 @@ html,body{height:100%;background:var(--d0);color:var(--t1);font-family:'DM Sans'
 <script type="module">
 // ── FIREBASE CONFIG ────────────────────────────────────────
 import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js';
-import { getFirestore, doc, setDoc, getDoc, onSnapshot, collection } from 'https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js';
+import { getFirestore, doc, setDoc, getDoc, onSnapshot } from 'https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js';
 
 const firebaseConfig = {
   apiKey: "AIzaSyB1r3qht6jazYdSx7KsQwcoBN_06fVZNkQ",
@@ -367,14 +367,20 @@ const firebaseConfig = {
   appId: "1:282268382052:web:c6788181049a8a98c78071"
 };
 
-const fireApp = initializeApp(firebaseConfig);
-const db = getFirestore(fireApp);
+let fireApp, db;
+try {
+  fireApp = initializeApp(firebaseConfig);
+  db = getFirestore(fireApp);
+} catch(e) {
+  console.log('Firebase init error:', e);
+}
 
 // ── FIREBASE SYNC ──────────────────────────────────────────
 // ── Firebase save/load mejorado ────────────────────────────
 let fbInitialized = false;
 
 async function fbSave(){
+  if(!db) return;
   try{
     await setDoc(doc(db,'ladocta','datos'),{
       cobros: cobros.map(c=>({...c, metodo: c.metodo||'efectivo'})),
@@ -386,12 +392,14 @@ async function fbSave(){
 }
 
 async function fbSaveEve(){
+  if(!db) return;
   try{
     await setDoc(doc(db,'ladocta','eventos'),{eventos});
   }catch(e){console.log('fbSaveEve error',e);}
 }
 
 async function fbLoad(){
+  if(!db) return;
   try{
     const d=await getDoc(doc(db,'ladocta','datos'));
     if(d.exists()){
@@ -407,6 +415,7 @@ async function fbLoad(){
 }
 
 function fbListenEve(){
+  if(!db) return;
   // Solo escuchar eventos para tiempo real de confirmaciones
   onSnapshot(doc(db,'ladocta','eventos'),(snap)=>{
     if(!snap.exists()) return;
