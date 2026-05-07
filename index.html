@@ -1509,8 +1509,8 @@ function editarSaldo(){
   document.body.appendChild(ov);
   const inp=document.getElementById('ov-input'); inp.value=saldoInicial;
   setTimeout(()=>{inp.focus();inp.select();},80);
-  document.getElementById('ov-ok').addEventListener('click',()=>{saldoInicial=parseInt(inp.value)||0;save();ov.remove();renderDash();toast('✅ Saldo efectivo actualizado');});
-  document.getElementById('ov-cancel').addEventListener('click',()=>ov.remove());
+  document.getElementById('ov-ok').addEventListener('click',()=>{const v=parseInt(inp.value)||0;saldoInicial=v;ov.remove();toast('✅ Saldo efectivo actualizado');fbSave().then(()=>renderDash());});
+ document.getElementById('ov-cancel').addEventListener('click',()=>ov.remove());
 }
 function editarBanco(){
   const ov=document.createElement('div');
