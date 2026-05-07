@@ -368,9 +368,17 @@ const fireApp = initializeApp(firebaseConfig);
 const db = getFirestore(fireApp);
 
 // ── FIREBASE SYNC ──────────────────────────────────────────
+// ── Firebase save/load mejorado ────────────────────────────
+let fbInitialized = false;
+
 async function fbSave(){
   try{
-    await setDoc(doc(db,'ladocta','datos'),{cobros,gastos,saldoInicial,saldoBanco});
+    await setDoc(doc(db,'ladocta','datos'),{
+      cobros: cobros.map(c=>({...c, metodo: c.metodo||'efectivo'})),
+      gastos: gastos.map(g=>({...g, metodo: g.metodo||'efectivo'})),
+      saldoInicial,
+      saldoBanco
+    });
   }catch(e){console.log('fbSave error',e);}
 }
 
@@ -385,7 +393,8 @@ async function fbLoad(){
     const d=await getDoc(doc(db,'ladocta','datos'));
     if(d.exists()){
       const p=d.data();
-      cobros=p.cobros||[]; gastos=p.gastos||[];
+      cobros=(p.cobros||[]).map(c=>({...c, metodo: c.metodo||'efectivo'}));
+      gastos=(p.gastos||[]).map(g=>({...g, metodo: g.metodo||'efectivo'}));
       if(p.saldoInicial!=null) saldoInicial=p.saldoInicial;
       if(p.saldoBanco!=null) saldoBanco=p.saldoBanco;
     }
@@ -394,25 +403,30 @@ async function fbLoad(){
   }catch(e){console.log('fbLoad error',e);}
 }
 
-// Real-time listener for eventos
 function fbListenEve(){
+  // Solo escuchar eventos para tiempo real de confirmaciones
   onSnapshot(doc(db,'ladocta','eventos'),(snap)=>{
-    if(snap.exists()){
-      eventos=snap.data().eventos||[];
-      // Refresh current view
-      if(pantallaActual==='eve') renderEve();
-      if(pantallaActual==='eve-det') verEvento(eventoActualId);
-      if(pantallaActual==='jug-view') renderVistaJugador(jugadorActual);
-    }
+    if(!snap.exists()) return;
+    eventos=snap.data().eventos||[];
+    if(pantallaActual==='eve') renderEve();
+    if(pantallaActual==='eve-det') verEvento(eventoActualId);
+    if(pantallaActual==='jug-view') renderVistaJugador(jugadorActual);
   });
+  // Escuchar datos financieros solo si no hay cambios locales pendientes
   onSnapshot(doc(db,'ladocta','datos'),(snap)=>{
-    if(snap.exists()){
-      const p=snap.data();
-      cobros=p.cobros||[]; gastos=p.gastos||[];
+    if(!snap.exists()) return;
+    const p=snap.data();
+    // Solo actualizar si los datos son diferentes (evitar loop)
+    const newCobros=(p.cobros||[]).map(c=>({...c, metodo: c.metodo||'efectivo'}));
+    const newGastos=(p.gastos||[]).map(g=>({...g, metodo: g.metodo||'efectivo'}));
+    if(JSON.stringify(newCobros)!==JSON.stringify(cobros)||
+       JSON.stringify(newGastos)!==JSON.stringify(gastos)){
+      cobros=newCobros; gastos=newGastos;
       if(p.saldoInicial!=null) saldoInicial=p.saldoInicial;
       if(p.saldoBanco!=null) saldoBanco=p.saldoBanco;
       if(pantallaActual==='dash') renderDash();
       if(pantallaActual==='jug') renderJug();
+      if(pantallaActual==='gas') renderGas();
     }
   });
 }
@@ -933,10 +947,10 @@ function renderDash(){
   const deu=deudaTotal();
   const alDia=JUG.filter(j=>estadoGeneralJ(j.nombre)==='ok').length;
   // Caja efectivo = saldo inicial + cobros efectivo - gastos efectivo
-  const cobrosEfect=cobros.reduce((s,c)=>s+c.monto,0);
-  const cobrosTransf=0;
-  const gastosEfect=gastos.reduce((s,g)=>s+g.monto,0);
-  const gastosTransf=0;
+  const cobrosEfect=cobros.filter(c=>(c.metodo||'efectivo')!=='transferencia').reduce((s,c)=>s+c.monto,0);
+  const cobrosTransf=cobros.filter(c=>c.metodo==='transferencia').reduce((s,c)=>s+c.monto,0);
+  const gastosEfect=gastos.filter(g=>(g.metodo||'efectivo')!=='transferencia').reduce((s,g)=>s+g.monto,0);
+  const gastosTransf=gastos.filter(g=>g.metodo==='transferencia').reduce((s,g)=>s+g.monto,0);
   const cajaEfect=saldoInicial+cobrosEfect-gastosEfect;
   const cajaBanco=saldoBanco+cobrosTransf-gastosTransf;
 
