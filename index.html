@@ -482,7 +482,7 @@ const CATICONS = {entrenamiento:'⚽',partido:'🏟',indumentaria:'👕',otro:'�
 const COLS = ['16a34a','15803d','4ade80','f59e0b','d97706','fbbf24','dc2626','ef4444','3b82f6','60a5fa','7c3aed','8b5cf6','db2777','e879f9','0891b2','06b6d4','65a30d','84cc16','c2410c','fb923c','0369a1','38bdf8','6d28d9','a78bfa','be185d','f43f5e','0d9488'];
 let DT_PASS = 'doctadt';
 
-let cobros=[], gastos=[], saldoInicial=840000, saldoBanco=200000;
+let cobros=[], gastos=[], saldoInicial=240000, saldoBanco=100000;
 let metodo='transferencia', metodoGasto='efectivo', categoria='entrenamiento', filtro='todos', mesActual='Abril';
 let modoActual=''; // 'dt' o 'jugador'
 let jugadorActual='';
@@ -1808,23 +1808,29 @@ function goTo(id){
   if(id==='gas') renderGas();
   if(id==='eve') renderEve();
 }
-function resetMovimientos(){
-  const ov=document.createElement('div');
-  ov.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,.85);z-index:300;display:flex;align-items:center;justify-content:center;padding:24px;backdrop-filter:blur(4px)';
-  ov.innerHTML='<div style="background:#161827;border-radius:22px;padding:24px;width:100%;max-width:380px"><div style="font-family:Syne,sans-serif;font-size:18px;font-weight:800;margin-bottom:8px">⚠️ Resetear movimientos</div><div style="font-size:13px;color:#8B90B8;margin-bottom:20px">Esto borrará todos los cobros y gastos. No se puede deshacer.</div><button id="reset-ok" style="width:100%;padding:14px;border-radius:14px;border:none;background:#FF4757;color:#fff;font-family:Syne,sans-serif;font-size:15px;font-weight:700;cursor:pointer">Sí, resetear todo</button><button id="reset-cancel" style="width:100%;padding:14px;border-radius:14px;border:none;background:#252840;color:#8B90B8;font-family:Syne,sans-serif;font-size:15px;font-weight:700;cursor:pointer;margin-top:8px">Cancelar</button></div>';
-  document.body.appendChild(ov);
-  document.getElementById('reset-cancel').addEventListener('click',()=>ov.remove());
-  document.getElementById('reset-ok').addEventListener('click',()=>{cobros=[];gastos=[];fbSave().then(()=>{ov.remove();renderDash();renderJug();renderGas();toast('✅ Movimientos reseteados');});});
-}
 
 // ── INIT ───────────────────────────────────────────────────
 // Load local first for speed, then Firebase
 load(); loadEve();
 try{const p=localStorage.getItem('docta35pass');if(p)DT_PASS=p;}catch(e){}
 // Then load from Firebase and start listeners
-fbLoad().then(()=>{
+// Reset Firebase to clean state
+async function resetAndLoad(){
+  try{
+    cobros=[]; gastos=[]; saldoInicial=240000; saldoBanco=100000;
+    await fbSave();
+  }catch(e){}
   renderDash();
   fbListenEve();
+}
+
+fbLoad().then(()=>{
+  // Reset datos a cero - borrar despues de primer uso
+  cobros=[]; gastos=[]; saldoInicial=240000; saldoBanco=100000;
+  fbSave().then(()=>{
+    renderDash();
+    fbListenEve();
+  });
 });
 
 document.getElementById('btn-modo-dt').addEventListener('click',entrarDT);
