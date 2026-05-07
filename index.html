@@ -1825,12 +1825,8 @@ async function resetAndLoad(){
 }
 
 fbLoad().then(()=>{
-  // Reset datos a cero - borrar despues de primer uso
-  cobros=[]; gastos=[]; saldoInicial=240000; saldoBanco=100000;
-  fbSave().then(()=>{
-    renderDash();
-    fbListenEve();
-  });
+  renderDash();
+  fbListenEve();
 });
 
 document.getElementById('btn-modo-dt').addEventListener('click',entrarDT);
