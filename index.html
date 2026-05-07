@@ -1808,6 +1808,14 @@ function goTo(id){
   if(id==='gas') renderGas();
   if(id==='eve') renderEve();
 }
+function resetMovimientos(){
+  const ov=document.createElement('div');
+  ov.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,.85);z-index:300;display:flex;align-items:center;justify-content:center;padding:24px;backdrop-filter:blur(4px)';
+  ov.innerHTML='<div style="background:#161827;border-radius:22px;padding:24px;width:100%;max-width:380px"><div style="font-family:Syne,sans-serif;font-size:18px;font-weight:800;margin-bottom:8px">⚠️ Resetear movimientos</div><div style="font-size:13px;color:#8B90B8;margin-bottom:20px">Esto borrará todos los cobros y gastos. No se puede deshacer.</div><button id="reset-ok" style="width:100%;padding:14px;border-radius:14px;border:none;background:#FF4757;color:#fff;font-family:Syne,sans-serif;font-size:15px;font-weight:700;cursor:pointer">Sí, resetear todo</button><button id="reset-cancel" style="width:100%;padding:14px;border-radius:14px;border:none;background:#252840;color:#8B90B8;font-family:Syne,sans-serif;font-size:15px;font-weight:700;cursor:pointer;margin-top:8px">Cancelar</button></div>';
+  document.body.appendChild(ov);
+  document.getElementById('reset-cancel').addEventListener('click',()=>ov.remove());
+  document.getElementById('reset-ok').addEventListener('click',()=>{cobros=[];gastos=[];fbSave().then(()=>{ov.remove();renderDash();renderJug();renderGas();toast('✅ Movimientos reseteados');});});
+}
 
 // ── INIT ───────────────────────────────────────────────────
 // Load local first for speed, then Firebase
