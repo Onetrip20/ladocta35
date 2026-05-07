@@ -1822,47 +1822,44 @@ function goTo(id){
 // Load local first for speed, then Firebase
 load(); loadEve();
 try{const p=localStorage.getItem('docta35pass');if(p)DT_PASS=p;}catch(e){}
-// Then load from Firebase and start listeners
-// Reset Firebase to clean state
-async function resetAndLoad(){
-  try{
-    cobros=[]; gastos=[]; saldoInicial=240000; saldoBanco=100000;
-    await fbSave();
-  }catch(e){}
-  renderDash();
-  fbListenEve();
-}
-
 fbLoad().then(()=>{
   renderDash();
   fbListenEve();
 });
 
-document.getElementById('btn-modo-dt').addEventListener('click',entrarDT);
-document.getElementById('btn-modo-jug').addEventListener('click',entrarJugador);
-document.getElementById('btn-logout-dt').addEventListener('click',mostrarLogin);
-document.getElementById('btn-cambiar-pass').addEventListener('click',cambiarPassword);
-document.getElementById('btn-logout-dt').addEventListener('contextmenu',(e)=>{e.preventDefault();cambiarPassword();});
-document.getElementById('btn-logout-jug').addEventListener('click',mostrarLogin);
-document.getElementById('btn-back-det').addEventListener('click',()=>goTo('jug'));
-document.getElementById('btn-back-eve').addEventListener('click',()=>goTo('eve'));
+// Safe init - each listener wrapped independently
+[
+  ['btn-modo-dt', ()=>entrarDT()],
+  ['btn-modo-jug', ()=>entrarJugador()],
+  ['btn-logout-dt', ()=>mostrarLogin()],
+  ['btn-cambiar-pass', ()=>cambiarPassword()],
+  ['btn-logout-jug', ()=>mostrarLogin()],
+  ['btn-back-det', ()=>goTo('jug')],
+  ['btn-back-eve', ()=>goTo('eve')],
+  ['btn-guardar', ()=>guardar()],
+  ['btn-cancelar', ()=>cerrarModal()],
+  ['btn-edit-saldo', ()=>editarSaldo()],
+  ['btn-edit-banco', ()=>editarBanco()],
+  ['btn-cargar-cuota', ()=>cargarCuotaMes()],
+  ['btn-gestionar-jug', ()=>gestionarJugadores()],
+  ['btn-reset-mov', ()=>resetMovimientos()],
+  ['nav-dash', ()=>goTo('dash')],
+  ['nav-jug', ()=>goTo('jug')],
+  ['nav-gas', ()=>goTo('gas')],
+  ['nav-eve', ()=>goTo('eve')],
+].forEach(([id,fn])=>{
+  const el=document.getElementById(id);
+  if(el) el.addEventListener('click',fn);
+  else console.warn('Missing element:',id);
+});
+// fab and modal listeners
 document.getElementById('fab').addEventListener('click',()=>{
   if(pantallaActual==='jug') abrirCobro('');
   else if(pantallaActual==='gas') abrirGasto();
   else if(pantallaActual==='eve') abrirNuevoEvento();
 });
-document.getElementById('btn-guardar').addEventListener('click',guardar);
-document.getElementById('btn-cancelar').addEventListener('click',cerrarModal);
 document.getElementById('modal').addEventListener('click',function(e){if(e.target===this)cerrarModal();});
-document.getElementById('btn-edit-saldo').addEventListener('click',editarSaldo);
-document.getElementById('btn-cargar-cuota').addEventListener('click',cargarCuotaMes);
-document.getElementById('btn-gestionar-jug').addEventListener('click',gestionarJugadores);
-document.getElementById('btn-reset-mov').addEventListener('click',resetMovimientos);
-document.getElementById('btn-edit-banco').addEventListener('click',editarBanco);
-document.getElementById('nav-dash').addEventListener('click',()=>goTo('dash'));
-document.getElementById('nav-jug').addEventListener('click',()=>goTo('jug'));
-document.getElementById('nav-gas').addEventListener('click',()=>goTo('gas'));
-document.getElementById('nav-eve').addEventListener('click',()=>goTo('eve'));
+document.getElementById('btn-logout-dt').addEventListener('contextmenu',(e)=>{e.preventDefault();cambiarPassword();});
 document.getElementById('m-transf').addEventListener('click',function(){metodo='transferencia';this.classList.add('on');document.getElementById('m-efect').classList.remove('on');});
 document.getElementById('g-efect').addEventListener('click',function(){metodoGasto='efectivo';this.classList.add('on');document.getElementById('g-transf').classList.remove('on');});
 document.getElementById('g-transf').addEventListener('click',function(){metodoGasto='transferencia';this.classList.add('on');document.getElementById('g-efect').classList.remove('on');});
